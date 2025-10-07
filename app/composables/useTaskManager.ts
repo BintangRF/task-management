@@ -42,13 +42,13 @@ const saveToStorage = () => {
 };
 
 const createTask = async (
-  task: Omit<Task, "id" | "createdAt"> & { coverFile?: File | null }
+  task: Omit<Task, "id" | "createdAt"> & { coverImage?: File | null }
 ) => {
   const newTask: Task = {
     ...task,
     id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
     createdAt: new Date().toISOString(),
-    coverImage: "", // nanti akan diisi setelah save ke IndexedDB
+    coverImage: "",
   };
 
   const column = columns.value.find((c) => c.id === task.columnId);
@@ -56,8 +56,8 @@ const createTask = async (
     column.tasks.push(newTask);
     saveToStorage();
 
-    if (task.coverFile) {
-      await saveCoverImage(newTask.id, task.coverFile);
+    if (task.coverImage) {
+      await saveCoverImage(newTask.id, task.coverImage);
       newTask.coverImage = (await getCoverImage(newTask.id))!;
     }
   }
@@ -65,14 +65,14 @@ const createTask = async (
 
 const updateTask = async (
   taskId: string,
-  updates: Partial<Task> & { coverFile?: File | null }
+  updates: Partial<Task> & { coverImage?: File | null }
 ) => {
   for (const column of columns.value) {
     const i = column.tasks.findIndex((t) => t.id === taskId);
     if (i !== -1) {
       column.tasks[i] = { ...column.tasks[i], ...updates } as Task;
-      if (updates.coverFile !== undefined) {
-        await saveCoverImage(taskId, updates.coverFile);
+      if (updates.coverImage !== undefined) {
+        await saveCoverImage(taskId, updates.coverImage);
         column.tasks[i].coverImage = (await getCoverImage(taskId))!;
       }
       saveToStorage();
@@ -182,9 +182,8 @@ const filteredColumns = computed(() => {
     tasks: column.tasks.filter((task) => {
       const matchesSearch =
         !query ||
-        task.title.toLowerCase().includes(query) ||
         task.description.toLowerCase().includes(query) ||
-        (task.assignee?.toLowerCase() || "").includes(query) ||
+        task.assignee.some((a) => a.toLowerCase().includes(query)) ||
         (task.label?.toLowerCase() || "").includes(query) ||
         (task.priority?.toLowerCase() || "").includes(query) ||
         matchDateQuery(task.dueDate, query);

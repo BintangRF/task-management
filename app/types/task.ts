@@ -1,9 +1,8 @@
 // types/task.ts
 export interface Task {
   id: string;
-  title: string;
   description: string;
-  assignee: string;
+  assignee: string[];
   dueDate: string;
   label: "Feature" | "Bug" | "Issue" | "Undefined";
   priority?: "Low" | "Medium" | "High";

@@ -5,12 +5,7 @@ import {
   IonPage,
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
   IonButton,
   IonIcon,
 } from "@ionic/vue";
@@ -80,60 +75,70 @@ const onTaskMove = async (event: any, columnId: string) => {
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Task Board</ion-title>
+        <Header />
       </ion-toolbar>
     </ion-header>
 
     <ion-content>
-      <!-- Filter dan Search -->
-      <TaskFilters />
-
-      <!-- Board Columns -->
-      <div class="board-container">
-        <div v-for="column in filteredColumns" :key="column.id" class="column">
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title class="column-title">
-                {{ column.title }} ({{ column.tasks.length }})
-              </ion-card-title>
-            </ion-card-header>
-
-            <ion-card-content class="column-content">
+      <div
+        class="flex gap-4 p-4 overflow-x-auto scrollbar-none md:flex-row flex-col min-h-full"
+      >
+        <div
+          v-for="column in filteredColumns"
+          :key="column.id"
+          class="bg-white flex-shrink-0 max-w-[320px] w-full"
+        >
+          <!-- Column Header -->
+          <div class="flex items-center justify-between px-3 py-2">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-semibold text-gray-800">
+                {{ column.title }}
+              </h3>
               <ion-button
-                expand="block"
-                fill="outline"
                 size="small"
+                style="
+                  --background: #93c5fd;
+                  --color: white;
+                  --box-shadow: none;
+                "
+                class="flex items-center gap-1"
                 @click="openTaskModal(column.id)"
               >
-                <ion-icon :icon="addOutline" slot="start" />
-                Add Task
+                <ion-icon :icon="addOutline" class="text-base text-blue-800" />
               </ion-button>
+            </div>
+          </div>
 
-              <!-- draggable untuk task di kolom ini -->
-              <client-only>
-                <draggable
-                  v-model="column.tasks"
-                  group="tasks"
-                  item-key="id"
-                  class="task-list"
-                  @change="(event: any) => onTaskMove(event, column.id)"
-                  @end="saveToStorage()"
-                >
-                  <template #item="{ element: task }">
-                    <TaskCard
-                      :task="task"
-                      @edit="openTaskModal(task.columnId, task)"
-                      @delete="deleteTask(task.id)"
-                    />
-                  </template>
-                </draggable>
-              </client-only>
-            </ion-card-content>
-          </ion-card>
+          <!-- Task List -->
+          <div class="px-2 py-2 flex flex-col gap-2 min-h-[450px]">
+            <client-only>
+              <draggable
+                v-model="column.tasks"
+                group="tasks"
+                item-key="id"
+                class="flex flex-col gap-2"
+                @change="(event: any) => onTaskMove(event, column.id)"
+              >
+                <template #item="{ element: task }">
+                  <TaskCard
+                    :task="task"
+                    @edit="openTaskModal(task.columnId, task)"
+                    @delete="deleteTask(task.id)"
+                  />
+                </template>
+              </draggable>
+            </client-only>
+
+            <div
+              v-if="column.tasks.length === 0"
+              class="text-gray-400 text-center text-sm py-24 italic bg-blue-50 rounded-xl"
+            >
+              No tasks available
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Task Modal -->
       <TaskModal
         :is-open="isModalOpen"
         :task="selectedTask"
@@ -144,35 +149,3 @@ const onTaskMove = async (event: any, columnId: string) => {
     </ion-content>
   </ion-page>
 </template>
-
-<style scoped>
-.board-container {
-  display: flex;
-  gap: 16px;
-  padding: 16px;
-  overflow-x: auto;
-  min-height: calc(100vh - 200px);
-}
-
-.column {
-  min-width: 300px;
-  flex: 1;
-}
-
-.column-title {
-  font-size: 1.1em;
-  font-weight: 600;
-}
-
-.column-content {
-  padding: 8px 0;
-}
-
-.task-list {
-  min-height: 100px;
-  margin-top: 12px;
-  gap: 8px;
-  display: flex;
-  flex-direction: column;
-}
-</style>

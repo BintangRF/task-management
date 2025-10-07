@@ -1,9 +1,11 @@
+import { coverImageBus } from "./useImageBus";
+
 export const dbName = "task-board-db";
 export const storeName = "coverImages";
 
 export const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
+    const request = indexedDB.open(dbName, 2);
 
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -21,7 +23,6 @@ export const saveCoverImage = async (taskId: string, file: File | null) => {
   const db = await openDB();
 
   if (file) {
-    // Baca file sebagai base64 terlebih dahulu
     const dataUrl = await new Promise<string | ArrayBuffer | null>(
       (resolve, reject) => {
         const reader = new FileReader();
@@ -31,23 +32,25 @@ export const saveCoverImage = async (taskId: string, file: File | null) => {
       }
     );
 
-    // Baru buka transaction untuk menyimpan
     const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
     store.put({ taskId, data: dataUrl });
+
     await new Promise<void>((resolve, reject) => {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
+
+    coverImageBus.emit("updated", { taskId });
   } else {
-    // Hapus cover image
     const tx = db.transaction(storeName, "readwrite");
-    const store = tx.objectStore(storeName);
-    store.delete(taskId);
+
     await new Promise<void>((resolve, reject) => {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
+
+    coverImageBus.emit("updated", { taskId });
   }
 };
 

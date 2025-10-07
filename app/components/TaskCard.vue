@@ -3,12 +3,10 @@ import { computed, ref, onMounted } from "vue";
 import {
   IonCard,
   IonCardHeader,
-  IonCardTitle,
   IonCardContent,
   IonButton,
   IonIcon,
   IonChip,
-  IonAvatar,
 } from "@ionic/vue";
 import {
   createOutline,
@@ -18,7 +16,7 @@ import {
 } from "ionicons/icons";
 import { type Task } from "~/types/task";
 import { useTaskManager } from "~/composables/useTaskManager";
-import { getCoverImage } from "~/composables/useIndexedDB"; // composable IndexedDB
+import { getCoverImage } from "~/composables/useIndexedDB";
 
 interface Props {
   task: Task;
@@ -37,12 +35,18 @@ const progress = computed(() =>
   getChecklistProgress(props.task.checklist || [])
 );
 
-// **State untuk cover image**
 const coverImage = ref<string | null>(null);
 
-// Ambil cover image saat component mount
 onMounted(async () => {
   coverImage.value = await getCoverImage(props.task.id);
+
+  coverImageBus.on("updated", async ({}) => {
+    coverImage.value = await getCoverImage(props.task.id);
+  });
+});
+
+onUnmounted(() => {
+  coverImageBus.all.clear();
 });
 
 const onDragStart = (event: DragEvent) => {
@@ -50,22 +54,22 @@ const onDragStart = (event: DragEvent) => {
 };
 
 const getLabelColor = (label: string) => {
-  const colors: any = {
-    Feature: "success",
-    Bug: "danger",
-    Issue: "warning",
-    Undefined: "medium",
+  const colors: Record<string, string> = {
+    Feature: "bg-green-200 text-green-800",
+    Bug: "bg-red-200 text-red-800",
+    Issue: "bg-yellow-200 text-yellow-800",
+    Undefined: "bg-gray-200 text-gray-700",
   };
-  return colors[label] || "medium";
+  return colors[label] || "bg-gray-200 text-gray-700";
 };
 
 const getPriorityColor = (priority: string) => {
-  const colors: any = {
-    High: "danger",
-    Medium: "warning",
-    Low: "success",
+  const colors: Record<string, string> = {
+    High: "bg-red-100 text-red-700",
+    Medium: "bg-yellow-100 text-yellow-700",
+    Low: "bg-green-100 text-green-700",
   };
-  return colors[priority] || "medium";
+  return colors[priority] || "bg-gray-200 text-gray-700";
 };
 
 const formatDate = (dateString: string) => {
@@ -78,179 +82,114 @@ const formatDate = (dateString: string) => {
 </script>
 
 <template>
-  <ion-card class="task-card" draggable="true" @dragstart="onDragStart">
+  <ion-card
+    class="task-card rounded-xl shadow-none bg-blue-50 transition cursor-grab"
+    draggable="true"
+    @dragstart="onDragStart"
+  >
     <!-- Cover Image -->
     <img
       v-if="coverImage"
       :src="coverImage"
       alt="Cover Image"
-      class="task-cover-image"
+      class="w-full h-56 object-cover rounded-t-2xl p-2"
     />
 
-    <ion-card-header>
-      <div class="task-header">
-        <ion-card-title class="task-title">{{ task.title }}</ion-card-title>
-        <ion-button fill="clear" size="small" @click.stop="$emit('edit')">
-          <ion-icon :icon="createOutline" />
-        </ion-button>
+    <ion-card-header class="px-4 pt-4!">
+      <!-- Header: Title + Buttons -->
+      <div class="flex justify-between items-start">
+        <div v-if="task.attachments.length > 0" class="flex items-center gap-1">
+          <ion-icon :icon="documentAttachOutline" />
+          <span>{{ task.attachments.length }} files</span>
+        </div>
+
+        <!-- Action Buttons: Edit & Delete -->
+        <div class="flex items-center ml-auto gap-1">
+          <!-- Edit Button -->
+          <ion-button
+            fill="clear"
+            size="small"
+            class="text-gray-500 hover:text-blue-500 transition"
+            @click.stop="$emit('edit')"
+          >
+            <ion-icon :icon="createOutline" />
+          </ion-button>
+
+          <!-- Delete Button -->
+          <ion-button
+            fill="clear"
+            size="small"
+            class="text-red-500 hover:text-red-700 transition"
+            @click.stop="$emit('delete')"
+          >
+            <ion-icon :icon="trashOutline" />
+          </ion-button>
+        </div>
       </div>
 
       <!-- Labels -->
-      <ion-chip :color="getLabelColor(task.label)" outline>
-        {{ task.label }}
-      </ion-chip>
+      <div class="flex flex-wrap gap-2 my-2">
+        <ion-chip
+          class="px-1 py-0.5 rounded-full text-xs min-w-[64px] flex items-center justify-center"
+          :class="getLabelColor(task.label)"
+        >
+          {{ task.label }}
+        </ion-chip>
 
-      <ion-chip
-        v-if="task.priority"
-        :color="getPriorityColor(task.priority)"
-        outline
-      >
-        {{ task.priority }}
-      </ion-chip>
-    </ion-card-header>
-
-    <ion-card-content>
-      <!-- Description -->
-      <p class="task-description">{{ task.description }}</p>
-
-      <!-- Assignee -->
-      <div class="task-meta">
-        <ion-avatar class="assignee-avatar">
-          <img
-            :src="`https://i.pravatar.cc/40?u=${task.assignee}`"
-            :alt="task.assignee"
-          />
-        </ion-avatar>
-        <span class="assignee-name">{{ task.assignee }}</span>
-      </div>
-
-      <!-- Due Date -->
-      <div class="task-meta">
-        <ion-icon :icon="calendarOutline" />
-        <span>{{ formatDate(task.dueDate) }}</span>
+        <ion-chip
+          v-if="task.priority"
+          class="px-1 py-0.5 rounded-full text-xs min-w-[64px] flex items-center justify-center"
+          :class="getPriorityColor(task.priority)"
+        >
+          {{ task.priority }}
+        </ion-chip>
       </div>
 
       <!-- Checklist Progress -->
-      <div v-if="(task.checklist || []).length > 0" class="checklist-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
+      <div v-if="(task.checklist || []).length > 0" class="mt-2">
+        <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
+          <div
+            class="h-full bg-blue-400 transition-all duration-300"
+            :style="{ width: `${progress}%` }"
+          ></div>
         </div>
-        <span class="progress-text">{{ progress }}%</span>
       </div>
+    </ion-card-header>
 
-      <!-- Attachments -->
-      <div v-if="task.attachments.length > 0" class="attachments">
-        <ion-icon :icon="documentAttachOutline" />
-        <span>{{ task.attachments.length }} files</span>
-      </div>
+    <ion-card-content class="px-4 pb-4!">
+      <!-- Description -->
+      <p class="text-gray-600 text-sm my-5! line-clamp-2">
+        {{ task.description }}
+      </p>
 
-      <!-- Delete Button -->
-      <ion-button
-        expand="block"
-        color="danger"
-        size="small"
-        @click.stop="$emit('delete')"
+      <!-- Due Date, Attachment, Assignee -->
+      <div
+        class="flex items-center justify-between text-gray-500 text-xs gap-2 flex-wrap mb-3"
       >
-        <ion-icon :icon="trashOutline" slot="start" />
-        Delete
-      </ion-button>
+        <div class="flex items-center gap-1">
+          <ion-icon :icon="calendarOutline" />
+          <span>{{ formatDate(task.dueDate) }}</span>
+        </div>
+
+        <!-- Assignee Avatars -->
+        <div class="flex -space-x-2">
+          <!-- Tampilkan maksimal 3 avatar -->
+          <img
+            v-for="(member, idx) in task.assignee.slice(0, 3)"
+            :key="member"
+            :src="'https://i.pravatar.cc/40?u=' + member"
+            class="w-6 h-6 rounded-full border-2 border-white"
+          />
+
+          <!-- Jika lebih dari 3, tampilkan jumlah tersisa -->
+          <div
+            v-if="task.assignee.length > 3"
+            class="w-6 h-6 flex items-center justify-center text-xs bg-gray-200 text-gray-600 rounded-full border-2 border-white"
+          >
+            +{{ task.assignee.length - 3 }}
+          </div>
+        </div>
+      </div>
     </ion-card-content>
   </ion-card>
 </template>
-
-<style scoped>
-.task-card {
-  margin-bottom: 12px;
-  cursor: grab;
-}
-
-.task-card:active {
-  cursor: grabbing;
-}
-
-.task-cover-image {
-  width: 100%;
-  max-height: 150px;
-  object-fit: cover;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  margin-bottom: 8px;
-}
-
-.task-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.task-title {
-  font-size: 1em;
-  margin: 0;
-  flex: 1;
-}
-
-.task-description {
-  font-size: 0.9em;
-  color: var(--ion-color-medium);
-  margin: 8px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.task-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0;
-  font-size: 0.8em;
-  color: var(--ion-color-medium);
-}
-
-.assignee-avatar {
-  width: 24px;
-  height: 24px;
-}
-
-.assignee-name {
-  font-size: 0.9em;
-}
-
-.checklist-progress {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 12px 0;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 6px;
-  background-color: var(--ion-color-light);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: var(--ion-color-success);
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 0.8em;
-  color: var(--ion-color-medium);
-  min-width: 30px;
-}
-
-.attachments {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 8px 0;
-  font-size: 0.8em;
-  color: var(--ion-color-medium);
-}
-</style>

@@ -22,9 +22,9 @@ export default defineNuxtConfig({
   // title and icon web
   app: {
     head: {
-      title: "Nuxt Template",
+      title: "Task Management",
       meta: [
-        { name: "description", content: "Deskripsi website kamu" },
+        { name: "description", content: "Task management" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
       ],
       link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
