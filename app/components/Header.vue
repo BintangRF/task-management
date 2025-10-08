@@ -12,7 +12,6 @@ import { useTaskManager } from "~/composables/useTaskManager";
 
 const { filterOptions, searchQuery } = useTaskManager();
 
-// Avatar tim
 const teamMembers = ref([
   { avatar: "https://randomuser.me/api/portraits/men/1.jpg" },
   { avatar: "https://randomuser.me/api/portraits/women/2.jpg" },
@@ -26,10 +25,8 @@ const extraMembers =
     ? teamMembers.value.length - maxVisibleAvatars
     : 0;
 
-// Popover state
 const isFilterOpen = ref(false);
 
-// Clear filter function
 const clearFilters = () => {
   filterOptions.value = {
     assignee: "",
@@ -40,7 +37,6 @@ const clearFilters = () => {
   isFilterOpen.value = false;
 };
 
-// Apply filter function
 const applyFilter = (label: string) => {
   filterOptions.value.label = label;
   isFilterOpen.value = false;
@@ -50,15 +46,19 @@ const applyFilter = (label: string) => {
 <template>
   <ion-header>
     <ion-toolbar class="bg-white shadow-md ion-no-padding">
-      <div class="flex justify-between items-center w-full px-4 md:px-8">
-        <!-- Kiri: Logo Dropdown + Avatar + Invite -->
-        <div class="flex items-center gap-4">
+      <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-center w-full px-4 md:px-8 gap-3 md:gap-0 py-2"
+      >
+        <!-- Bagian Kiri -->
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <!-- Logo Dropdown -->
           <div
             class="flex items-center gap-1 cursor-pointer bg-gray-100 px-3 py-1 rounded-md"
           >
             <ion-icon :icon="lockClosedOutline" class="text-gray-600" />
-            <span class="text-gray-800 font-semibold">Adhivasindo</span>
+            <span class="text-gray-800 font-semibold text-sm md:text-base"
+              >Adhivasindo</span
+            >
             <ion-icon :icon="chevronDownOutline" class="text-gray-600" />
           </div>
 
@@ -69,11 +69,11 @@ const applyFilter = (label: string) => {
               :key="index"
               :src="member.avatar"
               alt="Avatar"
-              class="h-8 w-8 rounded-full border-2 border-white"
+              class="h-7 w-7 md:h-8 md:w-8 rounded-full border-2 border-white"
             />
             <span
               v-if="extraMembers > 0"
-              class="h-8 w-8 flex items-center justify-center bg-blue-400 rounded-full text-sm font-medium text-white border-2 border-white"
+              class="h-7 w-7 md:h-8 md:w-8 flex items-center justify-center bg-blue-400 rounded-full text-xs md:text-sm font-medium text-white border-2 border-white"
             >
               +{{ extraMembers }}
             </span>
@@ -87,12 +87,14 @@ const applyFilter = (label: string) => {
             style="--box-shadow: none"
           >
             <ion-icon :icon="personAddOutline" />
-            Invite
+            <span class="hidden sm:inline">Invite</span>
           </ion-button>
         </div>
 
-        <!-- Kanan: Filter + Export/Import + Search -->
-        <div class="flex items-center gap-3">
+        <!-- Bagian Kanan -->
+        <div
+          class="flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3 w-full md:w-auto"
+        >
           <!-- Filter Button -->
           <ion-button
             id="filter-trigger"
@@ -103,7 +105,7 @@ const applyFilter = (label: string) => {
             @click="isFilterOpen = true"
           >
             <ion-icon :icon="funnelOutline" />
-            Filter
+            <span class="hidden sm:inline">Filter</span>
             <ion-icon :icon="chevronDownOutline" class="text-gray-600 ml-1" />
           </ion-button>
 
@@ -127,7 +129,7 @@ const applyFilter = (label: string) => {
                   ]"
                   :key="option.value"
                   @click="applyFilter(option.value)"
-                  class="w-full text-left px-3! py-2! rounded-md transition-colors hover:bg-gray-100"
+                  class="w-full text-left px-3 py-2 rounded-md transition-colors hover:bg-gray-100"
                   :class="{
                     'bg-blue-50 text-blue-600 font-medium':
                       filterOptions.label === option.value,
@@ -157,16 +159,16 @@ const applyFilter = (label: string) => {
             class="flex items-center gap-1 text-nowrap"
           >
             <ion-icon :icon="globeOutline" />
-            Export/Import
+            <span class="hidden sm:inline">Export/Import</span>
           </ion-button>
 
           <!-- Searchbar -->
           <ion-searchbar
             v-model="searchQuery"
             color="light"
+            placeholder="Search..."
+            class="flex-1 min-w-[140px] md:min-w-[200px]"
             style="--box-shadow: none"
-            placeholder="Search tasks..."
-            class="w-48 md:w-64"
           />
         </div>
       </div>
