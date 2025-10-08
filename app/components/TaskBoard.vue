@@ -81,7 +81,7 @@ const onTaskMove = async (event: any, columnId: string) => {
 
     <ion-content>
       <div
-        class="flex gap-4 p-4 overflow-x-auto scrollbar-none md:flex-row flex-col min-h-full"
+        class="flex gap-4 p-4 overflow-x-auto scrollbar-none md:flex-row flex-col not-md:items-center min-h-full"
       >
         <div
           v-for="column in filteredColumns"

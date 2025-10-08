@@ -6,6 +6,7 @@ import { IonApp } from "@ionic/vue";
   <NuxtLayout>
     <ion-app>
       <NuxtPage />
+      <ToastContainer />
     </ion-app>
   </NuxtLayout>
 </template>

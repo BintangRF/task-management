@@ -6,17 +6,29 @@ import {
   globeOutline,
   lockClosedOutline,
   chevronDownOutline,
+  calendarOutline,
+  personOutline,
+  pricetagOutline,
 } from "ionicons/icons";
-import { IonSearchbar, IonButton, IonIcon, IonPopover } from "@ionic/vue";
+import {
+  IonSearchbar,
+  IonButton,
+  IonIcon,
+  IonPopover,
+  IonInput,
+  IonDatetime,
+  IonDatetimeButton,
+  IonModal,
+} from "@ionic/vue";
 import { useTaskManager } from "~/composables/useTaskManager";
 
 const { filterOptions, searchQuery } = useTaskManager();
 
 const teamMembers = ref([
-  { avatar: "https://randomuser.me/api/portraits/men/1.jpg" },
-  { avatar: "https://randomuser.me/api/portraits/women/2.jpg" },
-  { avatar: "https://randomuser.me/api/portraits/men/3.jpg" },
-  { avatar: "https://randomuser.me/api/portraits/women/4.jpg" },
+  { name: "Andi", avatar: "https://randomuser.me/api/portraits/men/1.jpg" },
+  { name: "Siti", avatar: "https://randomuser.me/api/portraits/women/2.jpg" },
+  { name: "Budi", avatar: "https://randomuser.me/api/portraits/men/3.jpg" },
+  { name: "Rina", avatar: "https://randomuser.me/api/portraits/women/4.jpg" },
 ]);
 
 const maxVisibleAvatars = 3;
@@ -26,6 +38,17 @@ const extraMembers =
     : 0;
 
 const isFilterOpen = ref(false);
+
+const tempFilter = ref({
+  label: "",
+  dueDate: "",
+  assignee: "",
+});
+
+const openFilter = () => {
+  tempFilter.value = { ...filterOptions.value };
+  isFilterOpen.value = true;
+};
 
 const clearFilters = () => {
   filterOptions.value = {
@@ -37,8 +60,8 @@ const clearFilters = () => {
   isFilterOpen.value = false;
 };
 
-const applyFilter = (label: string) => {
-  filterOptions.value.label = label;
+const applyFilter = () => {
+  filterOptions.value = { ...tempFilter.value };
   isFilterOpen.value = false;
 };
 </script>
@@ -102,7 +125,7 @@ const applyFilter = (label: string) => {
             color="light"
             class="flex items-center gap-1"
             style="--box-shadow: none"
-            @click="isFilterOpen = true"
+            @click="openFilter"
           >
             <ion-icon :icon="funnelOutline" />
             <span class="hidden sm:inline">Filter</span>
@@ -115,38 +138,94 @@ const applyFilter = (label: string) => {
             :is-open="isFilterOpen"
             @didDismiss="isFilterOpen = false"
             class="p-0"
+            style="--width: 90vw; --max-width: 400px"
+            :keep-contents-mounted="true"
           >
-            <div class="bg-white rounded-xl shadow-xl p-4 w-48 md:w-60">
-              <h3 class="font-semibold text-gray-800 mb-3">Filter by Label</h3>
-              <div class="flex flex-col gap-2">
-                <button
-                  v-for="option in [
-                    { value: '', label: 'All Labels' },
-                    { value: 'Feature', label: 'Feature' },
-                    { value: 'Bug', label: 'Bug' },
-                    { value: 'Issue', label: 'Issue' },
-                    { value: 'Undefined', label: 'Undefined' },
-                  ]"
-                  :key="option.value"
-                  @click="applyFilter(option.value)"
-                  class="w-full text-left px-3 py-2 rounded-md transition-colors hover:bg-gray-100"
-                  :class="{
-                    'bg-blue-50 text-blue-600 font-medium':
-                      filterOptions.label === option.value,
-                    'text-gray-700': filterOptions.label !== option.value,
-                  }"
+            <div class="bg-white rounded-2xl p-5 space-y-4 text-sm">
+              <h3
+                class="font-semibold text-gray-900 text-base mb-2 flex items-center gap-2"
+              >
+                <ion-icon :icon="funnelOutline" class="text-primary" />
+                Filter Tasks
+              </h3>
+
+              <!-- Label Input -->
+              <div class="space-y-1">
+                <label
+                  class="text-xs font-medium text-gray-500 flex items-center gap-1"
                 >
-                  {{ option.label }}
-                </button>
+                  <ion-icon
+                    :icon="pricetagOutline"
+                    class="text-gray-500 text-sm"
+                  />
+                  Label
+                </label>
+                <ion-input
+                  v-model="tempFilter.label"
+                  placeholder="Feature, Bug, Issue"
+                  class="rounded-lg border border-gray-200 text-sm py-1.5 px-2"
+                />
               </div>
 
-              <div class="mt-3 pt-3 border-t border-gray-200">
-                <button
-                  @click="clearFilters"
-                  class="w-full text-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              <!-- Due Date Input -->
+              <div class="space-y-1">
+                <label
+                  class="text-xs font-medium text-gray-500 flex items-center gap-1"
                 >
-                  Clear Filters
-                </button>
+                  <ion-icon
+                    :icon="calendarOutline"
+                    class="text-gray-500 text-sm"
+                  />
+                  Due Date
+                </label>
+
+                <!-- Modal untuk datetime -->
+                <ion-datetime
+                  v-model="tempFilter.dueDate"
+                  presentation="date"
+                  class="bg-white"
+                ></ion-datetime>
+              </div>
+
+              <!-- Assignee Input -->
+              <div class="space-y-1">
+                <label
+                  class="text-xs font-medium text-gray-500 flex items-center gap-1"
+                >
+                  <ion-icon
+                    :icon="personOutline"
+                    class="text-gray-500 text-sm"
+                  />
+                  Assignee
+                </label>
+                <ion-input
+                  v-model="tempFilter.assignee"
+                  placeholder="Type name"
+                  class="rounded-lg border border-gray-200 text-sm py-1.5 px-2"
+                />
+              </div>
+
+              <!-- Tombol Aksi -->
+              <div
+                class="flex justify-between gap-2 pt-4 border-t border-gray-200 mt-4"
+              >
+                <ion-button
+                  expand="block"
+                  fill="clear"
+                  color="medium"
+                  @click="clearFilters"
+                  class="w-1/2 font-medium"
+                >
+                  Clear
+                </ion-button>
+                <ion-button
+                  expand="block"
+                  color="primary"
+                  @click="applyFilter"
+                  class="w-1/2 font-medium"
+                >
+                  Apply
+                </ion-button>
               </div>
             </div>
           </ion-popover>
