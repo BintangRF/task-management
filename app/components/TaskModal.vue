@@ -344,53 +344,55 @@ const checklistProgress = computed(() => {
               </div>
 
               <!-- Popover for Assignee Selection -->
-              <ion-popover
-                trigger="assignee-popover"
-                :is-open="isPopOver"
-                :presenting-element="popoverTrigger"
-                @didDismiss="isPopOver = false"
-              >
-                <div class="p-4 border-b border-gray-200">
-                  <h4 class="text-base font-semibold text-gray-900 mb-1">
-                    Select Assignees
-                  </h4>
-                  <span class="text-sm text-gray-500"
-                    >{{ formData.assignee.length }} selected</span
-                  >
-                </div>
-                <ion-list class="py-2 max-h-80 overflow-y-auto">
-                  <ion-item
-                    v-for="member in teamMembers"
-                    :key="member"
-                    button
-                    @click="toggleAssignee(member)"
-                    class="px-4 min-h-14"
-                    :class="{
-                      'bg-blue-50': formData.assignee.includes(member),
-                    }"
-                  >
-                    <div class="flex items-center justify-between w-full">
-                      <div class="flex items-center gap-3">
-                        <ion-avatar class="w-8 h-8">
-                          <img
-                            :src="'https://i.pravatar.cc/40?u=' + member"
-                            class="w-8 h-8 rounded-full"
-                          />
-                        </ion-avatar>
-                        <ion-label class="text-sm text-gray-700">{{
-                          member
-                        }}</ion-label>
+              <ClientOnly>
+                <ion-popover
+                  trigger="assignee-popover"
+                  :is-open="isPopOver"
+                  :presenting-element="popoverTrigger"
+                  @didDismiss="isPopOver = false"
+                >
+                  <div class="p-4 border-b border-gray-200">
+                    <h4 class="text-base font-semibold text-gray-900 mb-1">
+                      Select Assignees
+                    </h4>
+                    <span class="text-sm text-gray-500"
+                      >{{ formData.assignee.length }} selected</span
+                    >
+                  </div>
+                  <ion-list class="py-2 max-h-80 overflow-y-auto">
+                    <ion-item
+                      v-for="member in teamMembers"
+                      :key="member"
+                      button
+                      @click="toggleAssignee(member)"
+                      class="px-4 min-h-14"
+                      :class="{
+                        'bg-blue-50': formData.assignee.includes(member),
+                      }"
+                    >
+                      <div class="flex items-center justify-between w-full">
+                        <div class="flex items-center gap-3">
+                          <ion-avatar class="w-8 h-8">
+                            <img
+                              :src="'https://i.pravatar.cc/40?u=' + member"
+                              class="w-8 h-8 rounded-full"
+                            />
+                          </ion-avatar>
+                          <ion-label class="text-sm text-gray-700">{{
+                            member
+                          }}</ion-label>
+                        </div>
+                        <span
+                          v-if="formData.assignee.includes(member)"
+                          class="text-blue-500 text-lg"
+                        >
+                          <ion-icon :icon="checkmarkCircle" />
+                        </span>
                       </div>
-                      <span
-                        v-if="formData.assignee.includes(member)"
-                        class="text-blue-500 text-lg"
-                      >
-                        <ion-icon :icon="checkmarkCircle" />
-                      </span>
-                    </div>
-                  </ion-item>
-                </ion-list>
-              </ion-popover>
+                    </ion-item>
+                  </ion-list>
+                </ion-popover>
+              </ClientOnly>
             </div>
 
             <!-- Due Date -->
