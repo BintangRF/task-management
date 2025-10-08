@@ -328,6 +328,7 @@ const checklistProgress = computed(() => {
                 </div>
                 <button
                   ref="popoverTrigger"
+                  id="assignee-popover"
                   @click="isPopOver = true"
                   class="flex items-center text-center justify-center rounded-full! min-w-8 min-h-8 bg-blue-100 border border-gray-300 px-3! py-3! text-sm text-gray-600 transition-all duration-200"
                 >
@@ -344,6 +345,7 @@ const checklistProgress = computed(() => {
 
               <!-- Popover for Assignee Selection -->
               <ion-popover
+                trigger="assignee-popover"
                 :is-open="isPopOver"
                 :presenting-element="popoverTrigger"
                 @didDismiss="isPopOver = false"
