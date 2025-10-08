@@ -190,7 +190,8 @@ const isFiltering = computed(() => {
   return (
     searchQuery.value.toLowerCase().trim() !== "" ||
     !!filterOptions.value.label ||
-    !!filterOptions.value.dueDate
+    !!filterOptions.value.dueDate ||
+    !!filterOptions.value.assignee
   );
 });
 

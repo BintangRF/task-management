@@ -39,6 +39,7 @@ import {
   alertCircleOutline,
 } from "ionicons/icons";
 import { type Task } from "~/types/task";
+import { teamMembers } from "~/data/member";
 
 interface Props {
   isOpen: boolean;
@@ -55,7 +56,6 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-const teamMembers = ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson"];
 const fileInput = ref<HTMLInputElement>();
 
 const coverImage = ref<File | null>(null);

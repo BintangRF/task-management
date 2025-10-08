@@ -17,14 +17,13 @@ import {
   IonPopover,
   IonInput,
   IonDatetime,
-  IonDatetimeButton,
-  IonModal,
 } from "@ionic/vue";
 import { useTaskManager } from "~/composables/useTaskManager";
+import { teamMembers } from "~/data/member";
 
 const { filterOptions, searchQuery } = useTaskManager();
 
-const teamMembers = ref([
+const avatarList = ref([
   { name: "Andi", avatar: "https://randomuser.me/api/portraits/men/1.jpg" },
   { name: "Siti", avatar: "https://randomuser.me/api/portraits/women/2.jpg" },
   { name: "Budi", avatar: "https://randomuser.me/api/portraits/men/3.jpg" },
@@ -33,8 +32,8 @@ const teamMembers = ref([
 
 const maxVisibleAvatars = 3;
 const extraMembers =
-  teamMembers.value.length - maxVisibleAvatars > 0
-    ? teamMembers.value.length - maxVisibleAvatars
+  avatarList.value.length - maxVisibleAvatars > 0
+    ? avatarList.value.length - maxVisibleAvatars
     : 0;
 
 const isFilterOpen = ref(false);
@@ -88,7 +87,7 @@ const applyFilter = () => {
           <!-- Avatar Tim -->
           <div class="flex items-center -space-x-3">
             <img
-              v-for="(member, index) in teamMembers.slice(0, maxVisibleAvatars)"
+              v-for="(member, index) in avatarList.slice(0, maxVisibleAvatars)"
               :key="index"
               :src="member.avatar"
               alt="Avatar"
@@ -198,11 +197,20 @@ const applyFilter = () => {
                   />
                   Assignee
                 </label>
-                <ion-input
+                <ion-select
                   v-model="tempFilter.assignee"
-                  placeholder="Type name"
-                  class="rounded-lg border border-gray-200 text-sm py-1.5 px-2"
-                />
+                  interface="popover"
+                  placeholder="Select assignee"
+                  class="rounded-lg border border-gray-200 text-sm"
+                >
+                  <ion-select-option
+                    v-for="member in teamMembers"
+                    :key="member"
+                    :value="member"
+                  >
+                    {{ member }}
+                  </ion-select-option>
+                </ion-select>
               </div>
 
               <!-- Tombol Aksi -->
