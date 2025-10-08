@@ -49,6 +49,7 @@ interface Props {
 interface Emits {
   (e: "close"): void;
   (e: "save", taskData: any): void;
+  (e: "request-close"): void;
 }
 
 const props = defineProps<Props>();
@@ -219,7 +220,7 @@ const checklistProgress = computed(() => {
         </ion-title>
         <ion-buttons slot="end">
           <ion-button
-            @click="$emit('close')"
+            @click="$emit('request-close')"
             class="w-10 h-10 rounded-full text-gray-500 hover:text-gray-700"
             fill="clear"
           >
@@ -657,7 +658,7 @@ const checklistProgress = computed(() => {
       <ion-toolbar class="bg-transparent">
         <div class="flex gap-3 px-4 py-3">
           <ion-button
-            @click="$emit('close')"
+            @click="$emit('request-close')"
             fill="outline"
             class="flex-1 border-gray-300 text-gray-600 hover:bg-gray-50"
           >

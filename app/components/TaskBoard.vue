@@ -38,8 +38,13 @@ const openTaskModal = (columnId: string, task: Task | null = null) => {
   isModalOpen.value = true;
 };
 
-const closeModal = () => {
+const requestCloseModal = () => {
+  // minta modal menutup, TIDAK mereset state di sini
   isModalOpen.value = false;
+};
+
+const onModalDidClose = () => {
+  // Hanya reset state setelah modal benar-benar ditutup (didDismiss)
   selectedTask.value = null;
   selectedColumnId.value = "";
 };
@@ -55,7 +60,7 @@ const handleSaveTask = (taskData: any) => {
       columnId: selectedColumnId.value,
     });
   }
-  closeModal();
+  isModalOpen.value = false;
 };
 
 const onTaskMove = async (event: any, columnId: string) => {
@@ -80,56 +85,80 @@ const onTaskMove = async (event: any, columnId: string) => {
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-button fill="clear" @click="openTaskModal('todo')">
-          <ion-icon :icon="addOutline" />
-          Add Task
-        </ion-button>
+        <Header />
       </ion-toolbar>
     </ion-header>
 
     <ion-content>
-      <div class="grid grid-cols-3 gap-4">
+      <div
+        class="flex gap-4 p-4 overflow-x-auto scrollbar-none md:flex-row flex-col not-md:items-center min-h-full"
+      >
         <div
           v-for="column in filteredColumns"
           :key="column.id"
-          class="bg-gray-100 p-3 rounded-xl"
+          class="bg-white flex-shrink-0 max-w-[320px] w-full"
         >
-          <h3 class="font-semibold mb-2">{{ column.title }}</h3>
+          <!-- Column Header -->
+          <div class="flex items-center justify-between px-3 py-2">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-semibold text-gray-800">
+                {{ column.title }}
+              </h3>
+              <ion-button
+                size="small"
+                style="
+                  --background: #93c5fd;
+                  --color: white;
+                  --box-shadow: none;
+                "
+                class="flex items-center gap-1"
+                @click="openTaskModal(column.id)"
+              >
+                <ion-icon :icon="addOutline" class="text-base text-blue-800" />
+              </ion-button>
+            </div>
+          </div>
 
-          <client-only>
-            <draggable
-              v-if="isClient"
-              :list="column.tasks"
-              group="tasks"
-              @change="onTaskMove"
-              item-key="id"
-              :data-column-id="column.id"
-              class="min-h-[50px]"
+          <!-- Task List -->
+          <div class="px-2 py-2 flex flex-col gap-2 min-h-[450px]">
+            <client-only>
+              <draggable
+                v-model="column.tasks"
+                group="tasks"
+                item-key="id"
+                class="flex flex-col gap-2"
+                @change="(event: any) => onTaskMove(event, column.id)"
+              >
+                <template #item="{ element: task }">
+                  <TaskCard
+                    :task="task"
+                    @edit="openTaskModal(task.columnId, task)"
+                    @delete="deleteTask(task.id)"
+                  />
+                </template>
+              </draggable>
+            </client-only>
+
+            <div
+              v-if="column.tasks.length === 0"
+              class="text-gray-400 text-center text-sm py-24 italic bg-blue-50 rounded-xl"
             >
-              <template #item="{ element }">
-                <div
-                  class="bg-white rounded-lg shadow-sm p-3 mb-2 cursor-pointer"
-                  @click="openTaskModal(column.id, element)"
-                >
-                  <p class="font-medium text-gray-700">
-                    {{ element.description || "Untitled Task" }}
-                  </p>
-                </div>
-              </template>
-            </draggable>
-          </client-only>
+              No tasks available
+            </div>
+          </div>
         </div>
       </div>
+
+      <ClientOnly>
+        <TaskModal
+          :is-open="isModalOpen"
+          :task="selectedTask"
+          :column-id="selectedColumnId"
+          @request-close="requestCloseModal"
+          @close="onModalDidClose"
+          @save="handleSaveTask"
+        />
+      </ClientOnly>
     </ion-content>
   </ion-page>
-
-  <ClientOnly>
-    <TaskModal
-      :is-open="isModalOpen"
-      :task="selectedTask"
-      :column-id="selectedColumnId"
-      @close="closeModal"
-      @save="handleSaveTask"
-    />
-  </ClientOnly>
 </template>
