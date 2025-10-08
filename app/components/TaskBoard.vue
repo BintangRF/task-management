@@ -139,13 +139,15 @@ const onTaskMove = async (event: any, columnId: string) => {
         </div>
       </div>
 
-      <TaskModal
-        :is-open="isModalOpen"
-        :task="selectedTask"
-        :column-id="selectedColumnId"
-        @close="closeModal"
-        @save="handleSaveTask"
-      />
+      <ClientOnly>
+        <TaskModal
+          :is-open="isModalOpen"
+          :task="selectedTask"
+          :column-id="selectedColumnId"
+          @close="closeModal"
+          @save="handleSaveTask"
+        />
+      </ClientOnly>
     </ion-content>
   </ion-page>
 </template>
