@@ -94,8 +94,8 @@ const toggleAssignee = (name: string) => {
 };
 
 const isPopOver = ref(false);
-
 const isFormValid = ref(false);
+const popoverTrigger = ref<HTMLElement | null>(null);
 
 // Reset form when modal opens/closes
 watch(
@@ -327,7 +327,7 @@ const checklistProgress = computed(() => {
                   </div>
                 </div>
                 <button
-                  id="popover-trigger"
+                  ref="popoverTrigger"
                   @click="isPopOver = true"
                   class="flex items-center text-center justify-center rounded-full! min-w-8 min-h-8 bg-blue-100 border border-gray-300 px-3! py-3! text-sm text-gray-600 transition-all duration-200"
                 >
@@ -344,8 +344,8 @@ const checklistProgress = computed(() => {
 
               <!-- Popover for Assignee Selection -->
               <ion-popover
-                trigger="popover-trigger"
                 :is-open="isPopOver"
+                :presenting-element="popoverTrigger"
                 @didDismiss="isPopOver = false"
               >
                 <div class="p-4 border-b border-gray-200">
